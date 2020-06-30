@@ -73,6 +73,7 @@ export default function LinksScreen({route, navigation}) {
     
         snapshot.forEach(doc => {
           console.log(doc.id, '=>', doc.data());
+          return doc.id
         });
       })
   

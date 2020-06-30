@@ -61,7 +61,7 @@ export default function EditarDogScreen({ route,navigation }) {
         <Card
           title="Datos de mi perro"
           containerStyle={{
-            ba3ckgroundColor: "#ffffff",
+            backgroundColor: "#ffffff",
             borderRadius: 0,
           }}
         >

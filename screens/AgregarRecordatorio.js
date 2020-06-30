@@ -76,7 +76,7 @@ export default function AgregarRecordatorio({ navigation }) {
           <Card
             title="Nuevo recordatorio"
             containerStyle={{
-              ba3ckgroundColor: "#ffffff",
+              backgroundColor: "#ffffff",
               borderRadius: 0,
             }}
           >

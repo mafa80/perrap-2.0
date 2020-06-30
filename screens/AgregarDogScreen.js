@@ -4,9 +4,25 @@ import { View, StyleSheet, Text, ScrollView,TouchableHighlight, ImageBackground}
 import { Footer, FooterTab,Button, Icon,} from "native-base";
 import imagef from "../assets/images/huellitas.png";
 import firebase from "firebase";
+import * as Permissions from 'expo-permissions';
+import * as ImagePicker from 'expo-image-picker';
+
+
+function generateUUID() {
+  var d = new Date().getTime();
+  var uuid = "xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+    var r = (d + Math.random() * 16) % 16 | 0;
+    d = Math.floor(d / 16);
+    return (c == "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+  return uuid;
+}
+
+
 
 export default function AgregarDogScreen({ navigation }) {
   const [vnom, setText] = React.useState("");
+  const [image, setImage] = React.useState("");
   console.log("Nombre :", vnom);
   const [vraza, setText1] = React.useState("");
   console.log("Raza", vraza);
@@ -15,6 +31,67 @@ export default function AgregarDogScreen({ navigation }) {
   const [vpeso, setText3] = React.useState("");
   console.log("Peso", vpeso);
 //navigation.navigate("Agregarcarnet"),
+function uploadImage(uri)  {
+  return new Promise((resolve, reject) => {
+    let xhr = new XMLHttpRequest();
+    xhr.onerror = reject;
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
+        resolve(xhr.response);
+      }
+    };
+
+    xhr.open("GET", uri);
+    xhr.responseType = "blob";
+    xhr.send();
+  });
+};
+const aydi = generateUUID()
+async function openGallery(){
+  console.log('galeria abridA');
+  const result = await Permissions.askAsync(Permissions.CAMERA_ROLL)
+  if (result){
+    const resultImage = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4,3]
+    })
+    
+    if(resultImage.cancelled === false){
+      const imageUri = resultImage.uri
+      uploadImage(imageUri)
+      .then(resolve =>{
+        let ref = firebase.storage().ref().child(`images/${aydi}`);
+        ref.put(resolve).then(resolve =>{
+          console.log('imagen subido bien :D');
+          loadImage()
+        }).catch(E =>{
+          console.log('error : ',E);
+          
+        })
+        
+      }).catch(error =>{
+        console.log('error al subir la imagen');
+        
+      })
+      console.log(imageUri);
+      
+    }
+  }
+  
+}
+
+async function loadImage(){
+  firebase.storage().ref(`images/${aydi}`).getDownloadURL().then(resolve =>{
+    setImage(resolve)
+    
+  }).catch(E =>{
+    console.log(E);
+    
+  })
+
+}
+
+
  function addPerr() {
   try{
     firebase
@@ -24,7 +101,8 @@ export default function AgregarDogScreen({ navigation }) {
         Nombre:vnom,
         Raza:vraza,
         Edad:vedad,
-        Peso:vpeso
+        Peso:vpeso,
+        Foto: image
       })
       .then(()=>navigation.navigate("Perros"));
   }catch (e) {
@@ -48,13 +126,13 @@ export default function AgregarDogScreen({ navigation }) {
         <Card
           title="Nuevo perro"
           containerStyle={{
-            ba3ckgroundColor: "#ffffff",
+            backgroundColor: "#ffffff",
             borderRadius: 0,
           }}
         >
-          <ImageBackground source={imagef} style={styles.image}>
+          <ImageBackground source={{imagef}} style={styles.image}>
           <View style={{ alignItems: "center", padding: 40 }}>
-            <Avatar rounded size="xlarge" showEditButton />
+            <Avatar rounded size="xlarge" showEditButton source={{uri:image}} onEditPress={openGallery} />
           </View>
 
           <Input
